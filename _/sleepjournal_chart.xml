@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<frameChart is3D="no" autoAdjust="true">
+	<frame type="none" outline="#666666"/>
+	<xAxis isVisible="true">
+		<labelStyle color="black"/>
+	</xAxis>
+	<yAxis isVisible="false">
+		<labelStyle color="#666666"/>
+		<groupStyle skipLabels="1"/>
+	</yAxis>
+	<legend isVisible="false"/>
+	<dataLabels foreground="#666666"/>
+	<elements place="Default" drawOutline="false" lineWidth="1"/>
+	<popup background="#C8FFFFFF" foreground="#333333"/>
+	<paint paint="Plain"/>
+	<insets left="5" top="5" right="5" bottom="5"/>
+</frameChart>
