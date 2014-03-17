@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 
+
 <cfif isDefined("url.d")>
 	<cfif not isDefined("cookie.sleepjournal.date")>
 		<cfcookie name="sleepjournal.date" value="#url.d#">
