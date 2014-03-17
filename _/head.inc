@@ -1,3 +1,15 @@
+/***********************************************************
+
+Sleep Journal v.0
+
+************************************************************
+Copyright (C) 1989, 1991 Free Software Foundation, Inc.  
+51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+************************************************************/
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
