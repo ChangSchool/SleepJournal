@@ -10,8 +10,76 @@ document.createElement('aside');
 document.createElement('footer');
 
 $(document).ready(function(){
-	
+	/*$('a:not([target])').click(function(){
+		self.location = $(this).attr('href');
+		return false;
+	});*/
+	$("a").attr("target","_self");
+	$(".required input").attr({"aria-required":"true"});
 });
+
+function userLogOut() {
+	var form = document.forms["frmLogout"];
+	//console.log(form);
+	form.submit();
+	return false;
+}
+function validateField(field, type, options) {
+	var $p, $field, val, $error, eid, re, msg = "";
+	$field = $("#" + field);
+	val = $field.val();
+	$p = $field.parents("p");
+	$p.removeClass("invalid").find("span").remove();
+	$field.attr({"aria-invalid":"false"}).removeAttr("aria-describedby");
+	if ($field.attr("aria-required") && val == "") {
+		msg = "This field is empty.";
+	} else {
+		switch(type) {
+			case "email":
+				re = new RegExp("^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$");
+				if (val > "" && !re.test(val)) msg = "This is not a valid email address.";
+				break;
+			case "text":
+				re = new RegExp("^." + "{" + (options.min || 0) + "," + (options.max && options.min < options.max ? options.max : "") + "}$");
+				if (!re.test(val)) {
+					if (options.max) {
+						msg = "This value must be between " + options.min + " and " + options.max + " characters long.";
+					} else if (options.min) {
+						msg = "This value must be at least " + options.min + " characters long.";
+					}
+				}
+				break;
+			case "password":
+				if (options.strong) {
+					re = new RegExp("^.*(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%&_-]).*$");
+					if (!re.test(val)) msg = "The password must contain at least one lowercase, one uppercase letter, one digit, and one of the following special characters (@, #, $, %, &, _, -).";
+				}			
+				re = new RegExp("^.{" + (options.min || 0) + "," + (options.max && options.min < options.max ? options.max : "") + "}$");
+				if (!re.test(val)) {
+					if (options.max) {
+						msg = "This value must be between " + options.min + " and " + options.max + " characters long.";
+					} else {
+						msg = "This value must be at least " + options.min + " characters long.";
+					}
+				}
+				
+				break;
+			case "compare":
+				if ($("input[name=" + options.field + "]").val() != $field.val()) msg = "This value must match the value of " + options.label + " field.";
+				break;
+		}
+	}
+	if (msg > "") {
+		eid = "err" + $field.attr("id");
+		$p.addClass("invalid");
+		$field.attr({"aria-invalid":"true", "aria-describedby":eid});
+		$error = $("<span/>").addClass("error").attr("id", eid).text(msg);
+		$p.remove("span.error").append($error);
+		return 1;
+	} else {
+		return 0;
+	}
+}
 
 
 /*

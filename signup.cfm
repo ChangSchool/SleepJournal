@@ -5,26 +5,33 @@
 <cfinclude template="_/head.inc">
 <script>
 function validateSignupForm() {
-	var f, el, e, err = "", re = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-	f = document.forms["frmSignup"];
-	el = f.elements;
-	if (el["first"].value.length < 2) err += "First name is required.\n"; 
-	if (el["last"].value.length < 2) err += "Last name is required.\n"; 
-	if (!re.test(el["email"].value)) err += "Valid email address is required.\n"; 
-	if (el["username"].value.length < 2) err += "Username is required.\n"; 
-	if (el["password"].value.length < 2) err += "Password is required.\n"; 
-	if (el["password"].value != el["confirm"].value) err += "Password and Confirm Password fields must match.";
-	if (err.length == 0) { return true; } else { alert(err); return false; }
+	var errors = 0, $form;
+	$form = $("#frmSignup");
+			
+	errors += validateField("first", "text", {min:2});
+	errors += validateField("last", "text", {min:2});
+	errors += validateField("email", "email", null);
+	errors += validateField("username", "text", {min:2});
+	errors += validateField("password", "password", {min:6, max:15, strong:false});
+	errors += validateField('confirm','compare', {field:'password', label:'Password'});
+		
+	if (errors) {
+		$(".invalid:eq(0) input").focus();
+		//$(".alert").text("The information you've entered is either incomplete, or contains errors. Please verify your input and try again.").show();
+		return false;
+	} else {
+		return true;
+	}
 }
 </script>
 </head>
 
 <cfif isDefined("form.first")>
-	<!--- check if username exists --->
+	<!--- check if email exists --->
 	<cfquery name="qUsername" datasource="sleepjournal">
 		SELECT * 
 		FROM users
-		WHERE username = <cfqueryparam value="#form.username#" cfsqltype="cf_sql_varchar">
+		WHERE email = <cfqueryparam value="#form.email#" cfsqltype="cf_sql_varchar">
 	</cfquery>
 	<cfif qUsername.recordCount eq 0>
 		<!--- create user --->
@@ -44,7 +51,7 @@ function validateSignupForm() {
 		</cfquery>
 		<!--- login user and redirect to homepage --->
 		<cflogin>
-			<cfloginuser name="#form.username#" password="#form.password#" roles = "user">
+			<cfloginuser name="#form.email#" password="#form.password#" roles = "user">
 		</cflogin>
 		<cflocation addtoken="no" url="index.cfm">
 	<cfelse>
@@ -63,22 +70,28 @@ function validateSignupForm() {
 	<h1><img src="_/img/sleepjournal@2x.png" width="32" height="32" alt=""> Sleep Journal</h1>
 </header>
 <article>
-	<form name="frmSignup" action="" method="post" class="login box" onSubmit="return validateSignupForm();">
+	<form name="frmSignup" id="frmSignup" action="" method="post" class="login box" onSubmit="return validateSignupForm();">
 		<input type="hidden" name="signup" value="1">
 		<h2>Registration</h2>
-		<cfif errorString gt ""><p class="alert">#errorString#</p></cfif>
-		<p><label for="first">First Name:</label><br>
-			<input type="text" name="first" id="first" value="#form.first#" class="input-text"></p>
-		<p><label for="last">Last Name:</label><br>
-			<input type="text" name="last" id="last" value="#form.last#" class="input-text"></p>
-		<p><label for="email">Email:</label><br>
-			<input type="text" name="email" id="email" autocapitalize="off" autocorrect="off" value="#form.email#" class="input-text"></p>
-		<p><label for="username">Username:</label><br> 
-			<input type="text" name="username" id="username" autocapitalize="off" autocorrect="off" value="" class="input-text"></p>
-		<p><label for="password">Password:</label><br>
-			<input type="password" name="password" id="password" value="" class="input-text"></p>
-		<p><label for="confirm">Confirm Password:</label><br>
-			<input type="password" name="confirm" id="confirm" value="" class="input-text"></p>
+		<p class="alert" role="alert" aria-atomic="true"<cfif errorString gt ""> style="display: block;"</cfif>>#errorString#</p>
+		<p class="required"><label for="first">First Name:</label><br>
+			<input type="text" name="first" id="first" value="#form.first#" class="input-text"  
+			onBlur="validateField('first','text', {min:2, specialcharacters:false, spaces: false});"></p>
+		<p class="required"><label for="last">Last Name:</label><br>
+			<input type="text" name="last" id="last" value="#form.last#" class="input-text"
+			onBlur="validateField('last','text', {min:2, specialcharacters:false, spaces: false});"></p>
+		<p class="required"><label for="email">Email:</label><br>
+			<input type="text" name="email" id="email" autocapitalize="off" autocorrect="off" 
+			value="#form.email#" class="input-text" onBlur="validateField('email','email', null);"></p>
+		<p class="required"><label for="username">Username:</label><br> 
+			<input type="text" name="username" id="username" autocapitalize="off" autocorrect="off" value="" class="input-text"
+			onBlur="validateField('username','text', {min:2, specialcharacters:false, spaces: false});"></p>
+		<p class="required"><label for="password">Password:</label><br>
+			<input type="password" name="password" id="password" value="" class="input-text"
+			onBlur="validateField('password','password', {min:6,  max:15, strong:false});"></p>
+		<p class="required"><label for="confirm">Confirm Password:</label><br>
+			<input type="password" name="confirm" id="confirm" value="" class="input-text"
+			onBlur="validateField('confirm','compare', {field:'password', label:'Password'});"></p>
 		<p><input type="submit" name="btnSubmit" value="Sign Up"> 
 			<input type="button" name="btnCancel" value="Cancel" onClick="location.href='index.cfm';"></p>
 	</form>

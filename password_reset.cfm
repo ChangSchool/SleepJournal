@@ -2,14 +2,22 @@
 <html>
 <head>
 <title>Sleep Journal: Reset Password</title>
+<cfinclude template="_/head.inc">
 <script>
 function validateResetForm() {
-	var f, el, e, err = "";
-	f = document.forms["frmReset"];
-	el = f.elements;
-	if (el["password"].value.length < 2) err += "Password is required.\n"; 
-	if (el["password"].value != el["confirm"].value) err += "Password and Confirm Password fields must match.";
-	if (err.length == 0) { return true; } else { alert(err); return false; }
+	var errors = 0, $form;
+	$form = $("#frmSignup");
+			
+	errors += validateField("password", "password", {min:6, max:15, strong:false});
+	errors += validateField('confirm','compare', {field:'password', label:'Password'});
+		
+	if (errors) {
+		$(".invalid:eq(0) input").focus();
+		//$(".alert").text("The information you've entered is either incomplete, or contains errors. Please verify your input and try again.").show();
+		return false;
+	} else {
+		return true;
+	}
 }
 </script>
 </head>
@@ -19,12 +27,14 @@ function validateResetForm() {
 	<cfquery name="qUpdatePassword" datasource="sleepjournal">
 		UPDATE users
 		SET password = <cfqueryparam value="#hash(form.password)#" cfsqltype="cf_sql_varchar">
-		WHERE username = <cfqueryparam value="#getAuthUser()#" cfsqltype="cf_sql_varchar">
+		WHERE username = (SELECT username 
+						FROM password_requests
+						WHERE id = <cfqueryparam value="#form.id#" cfsqltype="cf_sql_varchar">)
 	</cfquery>
 	<!--- update request --->
 	<cfquery name="qUpdateRequest" datasource="sleepjournal">
 		UPDATE password_requests
-		SET password_reset = 1
+		SET was_reset = 1
 		WHERE id = <cfqueryparam value="#form.id#" cfsqltype="cf_sql_varchar">
 	</cfquery>
 	<cfset success = true>
@@ -39,7 +49,9 @@ function validateResetForm() {
 	<cfif qRequest.recordCount gt 0>
 		<cfif createODBCDateTime(qRequest.expires) lt now()>
 			<cfset errorString = "The link has expired.">
-		<cfelseif qRequest.password_reset neq 1>
+		<cfelseif qRequest.was_reset eq 1>
+			<cfset errorString = "The password has been already reset.">
+		<cfelse>
 			<cfset validRequest = "yes">
 		</cfif>
 	<cfelse>
@@ -63,13 +75,15 @@ function validateResetForm() {
 	<form name="frmReset" action="#cgi.PATH_INFO#" method="post" class="login box" onSubmit="return validateResetForm();">
 		<input type="hidden" name="id" value="#url.id#">
 		<h2>Reset Password</h2>
-		<cfif errorString gt ""><p class="alert">#errorString#</p></cfif>
+		<p class="alert" role="alert" aria-atomic="true"<cfif errorString gt ""> style="display: block;"</cfif>>#errorString#</p>
 		<cfif validRequest is true>
 			<p>Enter your new password.</p>
-			<p><label for="password">New Password:</label><br>
-				<input type="password" name="password" id="password" value="" class="input-text" autocomplete="off"></p>
-			<p><label for="confirm">Confirm New Password:</label><br>
-				<input type="password" name="confirm" id="confirm" value="" class="input-text" autocomplete="off"></p>
+			<p class="required"><label for="password">Password:</label><br>
+				<input type="password" name="password" id="password" value="" class="input-text"
+				onBlur="validateField('password','password', {min:6,  max:15, strong:false});"></p>
+			<p class="required"><label for="confirm">Confirm Password:</label><br>
+				<input type="password" name="confirm" id="confirm" value="" class="input-text"
+				onBlur="validateField('confirm','compare', {field:'password', label:'Password'});"></p>
 			<p><input type="submit" name="btnSubmit" value="Save">
 				<input type="button" name="btnCancel" value="Cancel" onClick="location.href='index.cfm';"></p>
 		<cfelse>

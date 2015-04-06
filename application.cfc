@@ -8,6 +8,7 @@
 	<cfset this.applicationTimeout = "#createTimespan(5,0,0,0)#">
 	
 	<cffunction name="onApplicationStart">
+		<cfset application.key = "297_Victoria">
 		<cflog file="#this.name#" type="information" 
 			text="Application #this.name# started">
 	</cffunction>
@@ -21,6 +22,8 @@
 	<cffunction name="onRequestStart">
 		<cfargument name="request" required="true">
 		<cfif isDefined("form.logout")>
+			<cfcookie name="sleepjournal.date" value="#now()#" expires="NOW">
+			<cfcookie name="sleepjournal.user" value="#now()#" expires="NOW">
 			<cflogout>
 			<cflocation addtoken="no" url="index.cfm">
 		</cfif>

@@ -1,15 +1,21 @@
-<!doctype html>
 <html>
 <head>
 <title>Sleep Journal: Request Password Reset</title>
 <cfinclude template="_/head.inc">
 <script>
-function validateResetForm() {
-	var f, el, e, err = "";
-	f = document.forms["frmReset"];
-	el = f.elements;
-	if (el["username"].value.length < 2) err += "Username is required.\n"; 
-	if (err.length == 0) { return true; } else { alert(err); return false; }
+function validateRequestForm() {
+	var errors = 0, $form;
+	$form = $("#frmRequest");
+			
+	errors += validateField('username','text', {min:2, specialcharacters:false, spaces: false});
+		
+	if (errors) {
+		$(".invalid:eq(0) input").focus();
+		//$(".alert").text("The information you've entered is either incomplete, or contains errors. Please verify your input and try again.").show();
+		return false;
+	} else {
+		return true;
+	}
 }
 </script>
 </head>
@@ -29,7 +35,7 @@ function validateResetForm() {
 			FROM password_requests
 			WHERE username = <cfqueryparam value="#form.username#" cfsqltype="cf_sql_varchar">
 				AND expires > <cfqueryparam value="#now()#" cfsqltype="cf_sql_timestamp">
-				AND password_reset = 0
+				AND was_reset = 0
 		</cfquery>
 		<cfif q.recordCount gt 0>
 			<cfset errorString="An email has already been sent to this user. Please check your mailbox.">
@@ -63,16 +69,17 @@ function validateResetForm() {
 </header>
 <article>
 	<cfoutput>
-	<form name="frmReset" action="" method="post" class="login box" onSubmit="return validateResetForm();">
+	<form name="frmRequest" id="frmRequest" action="" method="post" class="login box" onSubmit="return validateRequestForm();">
 		<h2>Reset Password</h2>
-		<cfif errorString gt ""><p class="alert">#errorString#</p></cfif>
+		<p class="alert" role="alert" aria-atomic="true"<cfif errorString gt ""> style="display: block;"</cfif>>#errorString#</p>
 		<cfif key gt "">
 			<p>A link to reset your password has been sent to your email address.</p>
 			<p><input type="button" name="btnCancel" value="Close" onClick="location.href='index.cfm';"></p>
 		<cfelse>
 			<p>Enter your username and we'll email you a link to reset your password.</p>
-			<p><label for="username">Username:</label><br> 
-				<input type="text" name="username" id="username" autocapitalize="off" autocorrect="off" value="#form.username#" class="input-text" autocomplete="off"></p>
+			<p class="required"><label for="username">Username:</label><br>
+				<input type="text" name="username" id="username" autocapitalize="off" autocorrect="off" value="" class="input-text"
+				onBlur="validateField('username','text', {min:2, specialcharacters:false, spaces: false});"></p>
 			<p><input type="submit" name="btnSubmit" value="Continue"> 
 				<input type="button" name="btnCancel" value="Cancel" onClick="location.href='index.cfm';"></p>
 		</cfif>
